@@ -7,6 +7,9 @@ import com.getcapacitor.PluginCall;
 
 import java.lang.ref.WeakReference;
 
+/**
+ * An async task to load contact information from the device off the main thread.
+ */
 public class ContactLoadingTask extends AsyncTask<Void, Void, JSObject> {
 
     /**

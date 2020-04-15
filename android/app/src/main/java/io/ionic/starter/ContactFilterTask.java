@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An async task to load contact information from the device off the main thread.
+ * An async task to load filtered contact information from the device off the main thread.
  */
 public class ContactFilterTask extends AsyncTask<Void, Void, JSObject> {
 
@@ -87,9 +87,9 @@ public class ContactFilterTask extends AsyncTask<Void, Void, JSObject> {
         ContentResolver contentResolver = plugin.get().getActivity().getContentResolver();
 
         String[] whereParams = new String[]{searchValue + "%"};
+        String[] projection;
         String where;
         String contactIDField;
-        String[] projection;
 
         switch (searchProperty) {
             case NAME:
