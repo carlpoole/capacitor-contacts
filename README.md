@@ -1,69 +1,53 @@
-# Native Hire Take-home Project
+# Capacitor Contacts Plugin 
 
-This is an incomplete app that can be used as a starting point for the take-home portion of Native Team interviews.
+### Approach
 
-This app is built with several open source technologies, including but not limited to the following:
+- **Part 1**: 
 
-- **Ionic Framework** ([ionicframework.com](https://ionicframework.com/))
-- **Capacitor** ([capacitor.ionicframework.com](https://capacitor.ionicframework.com/))
-- **React** ([reactjs.org](https://reactjs.org/))
-- **TypeScript** ([typescriptlang.org](https://www.typescriptlang.org/))
+    Usage example `const result = await Contacts.getAll();`
+    
+    Android uses a device database to contain contacts. I created a helper class called ContactLoader to contain the methods and helpers involved with collecting the contact details from the DB. The getContacts() method in that class handles the database query and can be used to retrieve all records, or can be provided a list of long values representing record IDs to filter the database query with (this allows the same code to be used by the query function in part 2).
 
-### Prerequisites
+	ContactLoadingTask contains boilerplate code that is used by the main Contacts class to initiate the contact retrieval. This ensures the contacts are retrieved outside the main thread for the application, which is reserved for low-effort code and UI code to avoid a diminished user experience while the phone is busy loading contacts. This is especially important if someone has a large contact list.
 
-- [Node.js](https://nodejs.org/en/) environment with npm
-- [Android Studio](https://developer.android.com/studio)
-- [Xcode](https://developer.apple.com/xcode)
+	For iOS, the contacts are accessed using the fetchContacts function in Contacts.swift. This is also called off the main thread.
 
-### Install
+- **Part 2**: 
 
-To get started, clone the repo and install the dependencies:
+    Usage example
+    
+    ```
+    const result = await Contacts.find({
+      property: 'name',
+      value: 'Bri'
+    });
+    ```
+    
+    The query function find() accepts two parameters “property” and “value” which allow the plugin user to choose which contact property to filter the contact results with. See example above. The native code validates the property against a list of supported properties. The currently supported search options are full name, phone number and email.
 
-```shell
-git clone https://github.com/ionic-team/native-hire-project.git
-cd ./native-hire-project
-npm install
-```
+Android uses ContactFilterTask to search the contact database from off the main application thread. ContactFilterTask builds a database query using the provided details into a LIKE query. This searches the database fields in a “starts with” behavior. E.G: if the plugin user provides “Bri” like in the example above, it will return Brian, Britney, etc. This initial query builds a result list containing the long integer record IDs for the contacts in the device database and then passes this along to the core database lookup method in Part 1 to resolve the full details for each contact to be returned from the plugin.
 
-Next, build the web app so that it can be run on devices:
+For iOS, the contacts are accessed using the filterContacts function in Contacts.swift. This is also called off the main thread. Since there is no direct database access happening here like in Android, a predicate is built based on the input property with the search value and applied to the retrieval of contacts using CNContactStore.
 
-```shell
-npm run build
-```
+- **Part 3**: Designing and building this plugin with the intention of being open source and extensible involves making it flexible in capability, but also simple and easy to use if the users does not have a complex use case. These ideas can seem at odds, but I think it’s possible to provide an experience that would suit many users. 
 
-Finally, sync your web app with your native projects using Capacitor:
+The most important thing to get right I think is to cover as much native behavior as possible without bloating the plugin and making it too complicated or making it not capable enough. It should focus on the sole purpose of interacting with data from the contact list and that’s all. If there’s demand to add more features slightly outside the scope of the plugin, it’s possible to make other plugins extending the capabilities of this one or fork it. 
 
-```shell
-npx cap sync
-```
 
-### Getting Started
+### Improvement Ideas
 
-This app has two React components: [`Home`](https://github.com/ionic-team/native-hire-project/blob/master/src/pages/Home.tsx) (the root component) and [`ContactListItem`](https://github.com/ionic-team/native-hire-project/blob/master/src/components/ContactListItem.tsx). Contact data is loaded from native in [`contacts.ts`](https://github.com/ionic-team/native-hire-project/blob/master/src/data/contacts.ts). You are free to modify the React app however you like, but for this project we are more interested in evaluating your competency with iOS and Android.
+-	Enhance the getAll() method to allow the user to optionally provide exactly which properties they want returned for each contact (E.G: name and email only). This would this remove unnecessary contact properties from the results and speed up the database queries.
 
-[**Capacitor**](https://capacitor.ionicframework.com/) (now installed in the project) is the tool that powers this app on iOS and Android. It consists of a CLI, a set of Native APIs, and a Web View runtime. For this project, we are interested in using the Capacitor bridge to invoke native functions from the web app.
+-	Allow the plugin user to provide a settings object to format of the contact database results, such as a property to sort results on and whether its ascending or descending. It would be also be helpful to allow paging (a “page” and “limit” property) to allow the user to page through the contact database results incrementally to support long contact lists without severely impacting device memory.
 
-The shells of these functions are already defined in their respective native projects. See the `getAll` method of the contacts plugin in [`Contacts.java`](https://github.com/ionic-team/native-hire-project/blob/master/android/app/src/main/java/io/ionic/starter/Contacts.java#L21-L33) for Android and [`Contacts.swift`](https://github.com/ionic-team/native-hire-project/blob/master/ios/App/App/Contacts.swift#L6-L11) for iOS. These functions currently return mocked data.
+-	The plugin allows search and filter by one property and value at a time but for full flexibility it could allow totally custom searches by any number of them at once. The user could provide an array of objects containing a property and value to search by and whether to AND or OR them all together, and the native plugin would handle it. If iOS is capable of searching contacts using DB strings like Android, this could allow the user to provide custom DB query strings up front too.
 
-### Instructions
+-	Allow the plugin user to subscribe to events/plugin result fired when the user refused permission for contacts so that the app can behave appropriately.
 
-- **Part 1**: Add the functionality to retrieve all the contacts from the device on both iOS and Android. Feel free to refactor or modify the project as you see fit.
+-	Add additional contact list interactivity to make the plugin more CRUD-like such that the user can also add, update, or delete contacts from the device store.
 
-  The _minimum data_ that comprise a contact are: _first name_, _last name_, _phone number(s)_, and _email address(es)_. You are, however, welcome to return more fields.
+-	I think it’s possible to add a bit of front-end code in the Typescript part of the plugin to provide some enums up front that the plugin user could use instead of typing out “name” or “email” as a search property for the contact filter function. This would help reveal the options in an IDE and also help deter typos.
 
-- **Part 2**: Add a method to the contacts plugin that allows for querying contacts on the device. We are purposefully leaving this open-ended to put you in the mindset of a plugin developer.
+-	Provide a helpful readme and examples page to explain how to use the plugin easily and off explanations on how to use in more detail for more complex use cases like paging and customizing the properties returned for each contact.
 
-- **Part 3**: Think about how you might further extend this API with the idea that the contacts plugin code in this app could be open-sourced and reused in many apps. As a maintainer, what functionality might you add? What would you focus on? What would be most important to get right?
-
-  Write down your thoughts and be prepared to share with us.
-
-### Commands
-
-Most of these commands use `npx cap`, which runs the Capacitor CLI. See [the docs](https://capacitor.ionicframework.com/docs/basics/workflow) for more details.
-
-- `npm run build` - Rebuilds the web app.
-- `npx cap sync` - Copy web app into native projects, install native dependencies, etc.
-- `npx cap open ios` - Open the iOS project in Xcode.
-- `npx cap open android` - Open the Android project in Android Studio.
-
-Capacitor encourages you to use Xcode & Android Studio to deploy your app to iOS and Android devices. Just make sure to rebuild the web app and re-sync if you change web assets.
+-	Publish it to NPM so its accessible by everyone easily!
