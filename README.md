@@ -7,10 +7,10 @@
     Usage example `const result = await Contacts.getAll();`
     
     Android uses a device database to contain contacts. I created a helper class called ContactLoader to contain the methods and helpers involved with collecting the contact details from the DB. The getContacts() method in that class handles the database query and can be used to retrieve all records, or can be provided a list of long values representing record IDs to filter the database query with (this allows the same code to be used by the query function in part 2).
-
-	ContactLoadingTask contains boilerplate code that is used by the main Contacts class to initiate the contact retrieval. This ensures the contacts are retrieved outside the main thread for the application, which is reserved for low-effort code and UI code to avoid a diminished user experience while the phone is busy loading contacts. This is especially important if someone has a large contact list.
-
-	For iOS, the contacts are accessed using the fetchContacts function in Contacts.swift. This is also called off the main thread.
+    
+    ContactLoadingTask contains boilerplate code that is used by the main Contacts class to initiate the contact retrieval. This ensures the contacts are retrieved outside the main thread for the application, which is reserved for low-effort code and UI code to avoid a diminished user experience while the phone is busy loading contacts. This is especially important if someone has a large contact list.
+    
+    For iOS, the contacts are accessed using the fetchContacts function in Contacts.swift. This is also called off the main thread.
 
 - **Part 2**: 
 
@@ -24,14 +24,16 @@
     ```
     
     The query function find() accepts two parameters “property” and “value” which allow the plugin user to choose which contact property to filter the contact results with. See example above. The native code validates the property against a list of supported properties. The currently supported search options are full name, phone number and email.
+    
+    Android uses ContactFilterTask to search the contact database from off the main application thread. ContactFilterTask builds a database query using the provided details into a LIKE query. This searches the database fields in a “starts with” behavior. E.G: if the plugin user provides “Bri” like in the example above, it will return Brian, Britney, etc. This initial query builds a result list containing the long integer record IDs for the contacts in the device database and then passes this along to the core database lookup method in Part 1 to resolve the full details for each contact to be returned from the plugin.
+    
+    For iOS, the contacts are accessed using the filterContacts function in Contacts.swift. This is also called off the main thread. Since there is no direct database access happening here like in Android, a predicate is built based on the input property with the search value and applied to the retrieval of contacts using CNContactStore.
 
-Android uses ContactFilterTask to search the contact database from off the main application thread. ContactFilterTask builds a database query using the provided details into a LIKE query. This searches the database fields in a “starts with” behavior. E.G: if the plugin user provides “Bri” like in the example above, it will return Brian, Britney, etc. This initial query builds a result list containing the long integer record IDs for the contacts in the device database and then passes this along to the core database lookup method in Part 1 to resolve the full details for each contact to be returned from the plugin.
+- **Part 3**: 
 
-For iOS, the contacts are accessed using the filterContacts function in Contacts.swift. This is also called off the main thread. Since there is no direct database access happening here like in Android, a predicate is built based on the input property with the search value and applied to the retrieval of contacts using CNContactStore.
-
-- **Part 3**: Designing and building this plugin with the intention of being open source and extensible involves making it flexible in capability, but also simple and easy to use if the users does not have a complex use case. These ideas can seem at odds, but I think it’s possible to provide an experience that would suit many users. 
-
-The most important thing to get right I think is to cover as much native behavior as possible without bloating the plugin and making it too complicated or making it not capable enough. It should focus on the sole purpose of interacting with data from the contact list and that’s all. If there’s demand to add more features slightly outside the scope of the plugin, it’s possible to make other plugins extending the capabilities of this one or fork it. 
+    Designing and building this plugin with the intention of being open source and extensible involves making it flexible in capability, but also simple and easy to use if the users does not have a complex use case. These ideas can seem at odds, but I think it’s possible to provide an experience that would suit many users. 
+    
+    The most important thing to get right I think is to cover as much native behavior as possible without bloating the plugin and making it too complicated or making it not capable enough. It should focus on the sole purpose of interacting with data from the contact list and that’s all. If there’s demand to add more features slightly outside the scope of the plugin, it’s possible to make other plugins extending the capabilities of this one or fork it. 
 
 
 ### Improvement Ideas
