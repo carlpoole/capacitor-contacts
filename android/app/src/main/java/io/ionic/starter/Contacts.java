@@ -13,8 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static io.ionic.starter.ContactFilterTask.EMAIL;
-import static io.ionic.starter.ContactFilterTask.FIRST_NAME;
-import static io.ionic.starter.ContactFilterTask.LAST_NAME;
 import static io.ionic.starter.ContactFilterTask.NAME;
 import static io.ionic.starter.ContactFilterTask.PHONE;
 
@@ -32,8 +30,6 @@ public class Contacts extends Plugin {
      * Maps the plugin contact record identifiers from filters/searches to contact field names.
      */
     private static final Map<String, String> contactDetailsMap = new HashMap<String, String>() {{
-        put(FIRST_NAME, ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME);
-        put(LAST_NAME, ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME);
         put(NAME, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
         put(PHONE, ContactsContract.CommonDataKinds.Phone.NUMBER);
         put(EMAIL, ContactsContract.CommonDataKinds.Email.ADDRESS);

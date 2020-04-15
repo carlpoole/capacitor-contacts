@@ -91,7 +91,8 @@ public class Contacts : CAPPlugin {
      */
     private func filterContacts(property: String, value: String) -> [Any] {
         let keys = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey, CNContactEmailAddressesKey] as [CNKeyDescriptor]
-        let predicate = CNContact.predicateForContacts(matchingName: "Apple")
+        
+        let predicate = getPredicateFor(property: property, value: value)
         
         var results = [Any]()
         
@@ -106,6 +107,27 @@ public class Contacts : CAPPlugin {
         }
         
         return results
+    }
+    
+    /**
+     Helper function to create a predicate given a property and value to search on.
+     
+     - Parameters:
+         - property: The contact property to search on, eg: name, or email
+         - value: The value to search contacts with
+     
+     - Returns: A predicate to use to filter the contact list with
+     */
+    private func getPredicateFor(property: String, value: String) -> NSPredicate {
+        switch property {
+        case "email":
+            return CNContact.predicateForContacts(matchingEmailAddress: value)
+        case "phone":
+            let phone = CNPhoneNumber(stringValue: value)
+            return CNContact.predicateForContacts(matching: phone)
+        default:
+            return CNContact.predicateForContacts(matchingName: value)
+        }
     }
     
     /**

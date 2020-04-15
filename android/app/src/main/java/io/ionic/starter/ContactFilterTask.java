@@ -19,8 +19,6 @@ public class ContactFilterTask extends AsyncTask<Void, Void, JSObject> {
 
     // Constants representing the valid search/filter options.
     final static String NAME = "name";
-    final static String FIRST_NAME = "firstName";
-    final static String LAST_NAME = "lastName";
     final static String PHONE = "phone";
     final static String EMAIL = "email";
 
@@ -94,16 +92,6 @@ public class ContactFilterTask extends AsyncTask<Void, Void, JSObject> {
         switch (searchProperty) {
             case NAME:
                 where = ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME + " LIKE ?";
-                contactIDField = ContactsContract.CommonDataKinds.StructuredName.CONTACT_ID;
-                projection = NAME_PROJECTION;
-                break;
-            case FIRST_NAME:
-                where = ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME + " LIKE ?";
-                contactIDField = ContactsContract.CommonDataKinds.StructuredName.CONTACT_ID;
-                projection = NAME_PROJECTION;
-                break;
-            case LAST_NAME:
-                where = ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME + " LIKE ?";
                 contactIDField = ContactsContract.CommonDataKinds.StructuredName.CONTACT_ID;
                 projection = NAME_PROJECTION;
                 break;

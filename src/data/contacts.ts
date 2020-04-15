@@ -23,6 +23,11 @@ export const getContacts = async (): Promise<Contact[]> => {
       });
 
       const result = await Contacts.find({
+        property: 'phone',
+        value: '8885555512'
+      });
+
+      const result = await Contacts.find({
         property: 'email',
         value: 'jdoe@'
       });
