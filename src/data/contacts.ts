@@ -14,6 +14,21 @@ export const getContacts = async (): Promise<Contact[]> => {
   try {
     const result = await Contacts.getAll();
 
+    /*
+      Search examples
+
+      const result = await Contacts.find({
+        property: 'name',
+        value: 'John'
+      });
+
+      const result = await Contacts.find({
+        property: 'email',
+        value: 'jdoe@'
+      });
+
+    */
+
     return result.contacts;
   } catch (e) {
     console.error(`ERR (${getContacts.name}):`, e);
