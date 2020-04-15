@@ -52,7 +52,7 @@ public class Contacts : CAPPlugin {
         // Fetch and respond with contacts from off the main UI thread
         DispatchQueue.global(qos: .userInitiated).async {
             call.success([
-                "contacts": self.fetchContacts2(property: searchProperty, value: searchValue)
+                "contacts": self.filterContacts(property: searchProperty, value: searchValue)
             ])
         }
     }
@@ -89,7 +89,7 @@ public class Contacts : CAPPlugin {
      
      - Returns: A list of contacts filtered by the provided search parameters
      */
-    private func fetchContacts2(property: String, value: String) -> [Any] {
+    private func filterContacts(property: String, value: String) -> [Any] {
         let keys = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey, CNContactEmailAddressesKey] as [CNKeyDescriptor]
         let predicate = CNContact.predicateForContacts(matchingName: "Apple")
         
