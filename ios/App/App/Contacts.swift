@@ -4,14 +4,15 @@ import Contacts
 
 @objc(Contacts)
 public class Contacts : CAPPlugin {
-    
+
     @objc func getAll(_ call: CAPPluginCall) {
-        let contacts = fetchContacts()
         
-        
-        call.success([
-            "contacts": contacts
-        ])
+        // Fetch and respond with contacts from off the main UI thread
+        DispatchQueue.global(qos: .userInitiated).async {
+            call.success([
+                "contacts": self.fetchContacts()
+            ])
+        }
     }
     
     @objc func find(_ call: CAPPluginCall) {
@@ -19,11 +20,12 @@ public class Contacts : CAPPlugin {
         let searchProperty = call.getString("property") ?? ""
         let searchValue = call.getString("value") ?? ""
         
-        let contacts = getAllMocked() // TODO: Replace mocked data with real implementation.
-        
-        call.success([
-            "contacts": contacts
-        ])
+        // Fetch and respond with contacts from off the main UI thread
+        DispatchQueue.global(qos: .userInitiated).async {
+            call.success([
+                "contacts": self.fetchContacts2(property: searchProperty, value: searchValue)
+            ])
+        }
     }
     
     private func fetchContacts() -> [Any] {
@@ -34,25 +36,7 @@ public class Contacts : CAPPlugin {
         
         do {
             try CNContactStore().enumerateContacts(with: request, usingBlock: { (contact, stopPointer) in
-                
-                var phones = [Any]()
-                
-                for phoneNumber in contact.phoneNumbers {
-                    phones.append(phoneNumber.value.stringValue)
-                }
-                
-                var emails = [Any]()
-                
-                for emailAddress in contact.emailAddresses {
-                    emails.append(emailAddress.value)
-                }
-                
-                contacts.append([
-                    "firstName": contact.givenName,
-                    "lastName": contact.familyName,
-                    "phoneNumbers": phones,
-                    "emailAddresses": emails
-                ])
+                contacts.append(self.buildContactResponse(contact: contact))
             })
             
         } catch {
@@ -60,5 +44,45 @@ public class Contacts : CAPPlugin {
         }
         
         return contacts
+    }
+    
+    private func fetchContacts2(property: String, value: String) -> [Any] {
+        let keys = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey, CNContactEmailAddressesKey] as [CNKeyDescriptor]
+        let predicate = CNContact.predicateForContacts(matchingName: "Apple")
+        
+        var results = [Any]()
+        
+        do {
+            let contacts = try CNContactStore().unifiedContacts(matching: predicate, keysToFetch: keys)
+            
+            for contact in contacts {
+                results.append(self.buildContactResponse(contact: contact))
+            }
+        } catch {
+            print("unable to fetch contacts")
+        }
+        
+        return results
+    }
+    
+    private func buildContactResponse(contact: CNContact) -> Any {
+        var phones = [Any]()
+        
+        for phoneNumber in contact.phoneNumbers {
+            phones.append(phoneNumber.value.stringValue)
+        }
+        
+        var emails = [Any]()
+        
+        for emailAddress in contact.emailAddresses {
+            emails.append(emailAddress.value)
+        }
+        
+        return [
+            "firstName": contact.givenName,
+            "lastName": contact.familyName,
+            "phoneNumbers": phones,
+            "emailAddresses": emails
+        ]
     }
 }
